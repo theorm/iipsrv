@@ -16,3 +16,5 @@ Makefile.in
 /ltmain.sh
 /m4/
 /missing
+.deps/
+libtool
