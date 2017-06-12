@@ -67,6 +67,9 @@ void IIIF::run( Session* session, const string& src )
     }
   }
 
+  // Get scheme
+  const string scheme = session->headers["HTTPS"].empty() ? "http://" : "https://";
+
   // Check if there is slash in argument and if it is not last / first character, extract identifier and suffix
   size_t lastSlashPos = argument.find_last_of("/");
   if ( lastSlashPos != string::npos ){
@@ -99,7 +102,7 @@ void IIIF::run( Session* session, const string& src )
     else{
       string request_uri = session->headers["REQUEST_URI"];
       request_uri.erase( request_uri.length() - suffix.length(), string::npos );
-      id = "http://" + session->headers["HTTP_HOST"] + request_uri;
+      id = scheme + session->headers["HTTP_HOST"] + request_uri;
     }
     string header = string( "Status: 303 See Other\r\n" )
                     + "Location: " + id + "/info.json\r\n"
@@ -151,8 +154,6 @@ void IIIF::run( Session* session, const string& src )
     }
     else{
       string request_uri = session->headers["REQUEST_URI"];
-
-      string scheme = session->headers["HTTPS"].empty() ? "http://" : "https://";
 
       if (request_uri.empty()){
         throw invalid_argument( "IIIF: REQUEST_URI was not set in FastCGI request, so the ID parameter cannot be set." );
