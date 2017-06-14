@@ -44,6 +44,9 @@ using namespace std;
 //     eg. filename.tif/full/full/0/native.jpg
 // or in the form {identifier}/info.json
 //    eg. filename.jp2/info.json
+// or in the form {identifier}
+//    eg. filename.jp2
+// There might be a slash just before the identifer.
 
 void IIIF::run( Session* session, const string& src )
 {
