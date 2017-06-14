@@ -53,16 +53,11 @@ void IIIF::run( Session* session, const string& src )
   // Time this command
   if ( session->loglevel >= 2 ) command_timer.start();
 
-  // NOTE:
-  //   Argument must not be URL decoded before slash-based parsing.
-  //   FIF::run() decodes (a component of) the argument.
-  const string& argument = src;
-
   // Get scheme
   const string scheme = session->headers["HTTPS"].empty() ? "http://" : "https://";
 
-  // Check if there is slash in argument and if it is not last / first character, extract identifier and suffix
-  size_t lastSlashPos = argument.find_last_of("/");
+  // Find the last slash
+  const size_t lastSlashPos = src.find_last_of('/');
 
   if ( lastSlashPos == string::npos ){
     // No parameters, so redirect to info request
@@ -90,22 +85,22 @@ void IIIF::run( Session* session, const string& src )
 
   // Various string variables
   string filename, params;
-  const string suffix = argument.substr( lastSlashPos + 1, string::npos );
+  const string suffix = src.substr( lastSlashPos + 1, string::npos );
 
   // If we have an info command, file name must be everything
   if ( suffix.substr(0, 4) == "info" ){
-    filename = argument.substr(0, lastSlashPos);
+    filename = src.substr(0, lastSlashPos);
   }
   else{
     size_t positionTmp = lastSlashPos;
     for ( int i = 0; i < 3; i++ ){
-      positionTmp = argument.find_last_of("/", positionTmp - 1);
+      positionTmp = src.find_last_of("/", positionTmp - 1);
       if ( positionTmp == string::npos ){
         throw invalid_argument( "IIIF: Not enough parameters" );
       }
     }
-    filename = argument.substr(0, positionTmp);
-    params = argument.substr(positionTmp + 1, string::npos);
+    filename = src.substr(0, positionTmp);
+    params = src.substr(positionTmp + 1, string::npos);
   }
 
   // Check whether requested image exists
