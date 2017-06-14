@@ -56,16 +56,10 @@ void IIIF::run( Session* session, const string& src )
   // Various string variables
   string suffix, filename, params;
 
-  // First filter and decode our URL
-  URL url( src );
-  string argument = url.decode();
-
-  if ( session->loglevel >= 1 ){
-    if ( url.warning().length() > 0 ) *(session->logfile) << "IIIF :: " << url.warning() << endl;
-    if ( session->loglevel >= 5 ){
-      *(session->logfile) << "IIIF :: URL decoded to " << argument << endl;
-    }
-  }
+  // NOTE:
+  //   Argument must not be URL decoded before slash-based parsing.
+  //   FIF::run() decodes (a component of) the argument.
+  const string& argument = src;
 
   // Get scheme
   const string scheme = session->headers["HTTPS"].empty() ? "http://" : "https://";
