@@ -53,9 +53,6 @@ void IIIF::run( Session* session, const string& src )
   // Time this command
   if ( session->loglevel >= 2 ) command_timer.start();
 
-  // Various string variables
-  string suffix, filename, params;
-
   // NOTE:
   //   Argument must not be URL decoded before slash-based parsing.
   //   FIF::run() decodes (a component of) the argument.
@@ -66,27 +63,8 @@ void IIIF::run( Session* session, const string& src )
 
   // Check if there is slash in argument and if it is not last / first character, extract identifier and suffix
   size_t lastSlashPos = argument.find_last_of("/");
-  if ( lastSlashPos != string::npos ){
 
-    suffix = argument.substr( lastSlashPos + 1, string::npos );
-
-    // If we have an info command, file name must be everything
-    if ( suffix.substr(0, 4) == "info" ){
-      filename = argument.substr(0, lastSlashPos);
-    }
-    else{
-      size_t positionTmp = lastSlashPos;
-      for ( int i = 0; i < 3; i++ ){
-        positionTmp = argument.find_last_of("/", positionTmp - 1);
-        if ( positionTmp == string::npos ){
-          throw invalid_argument( "IIIF: Not enough parameters" );
-        }
-      }
-      filename = argument.substr(0, positionTmp);
-      params = argument.substr(positionTmp + 1, string::npos);
-    }
-  }
-  else{
+  if ( lastSlashPos == string::npos ){
     // No parameters, so redirect to info request
     string id;
     string host = session->headers["BASE_URL"];
@@ -95,7 +73,7 @@ void IIIF::run( Session* session, const string& src )
     }
     else{
       string request_uri = session->headers["REQUEST_URI"];
-      request_uri.erase( request_uri.length() - suffix.length(), string::npos );
+      request_uri.erase( request_uri.length(), string::npos );
       id = scheme + session->headers["HTTP_HOST"] + request_uri;
     }
     string header = string( "Status: 303 See Other\r\n" )
@@ -108,6 +86,26 @@ void IIIF::run( Session* session, const string& src )
       *(session->logfile) << "IIIF :: Sending HTTP 303 See Other : " << id + "/info.json" << endl;
     }
     return;
+  }
+
+  // Various string variables
+  string filename, params;
+  const string suffix = argument.substr( lastSlashPos + 1, string::npos );
+
+  // If we have an info command, file name must be everything
+  if ( suffix.substr(0, 4) == "info" ){
+    filename = argument.substr(0, lastSlashPos);
+  }
+  else{
+    size_t positionTmp = lastSlashPos;
+    for ( int i = 0; i < 3; i++ ){
+      positionTmp = argument.find_last_of("/", positionTmp - 1);
+      if ( positionTmp == string::npos ){
+        throw invalid_argument( "IIIF: Not enough parameters" );
+      }
+    }
+    filename = argument.substr(0, positionTmp);
+    params = argument.substr(positionTmp + 1, string::npos);
   }
 
   // Check whether requested image exists
