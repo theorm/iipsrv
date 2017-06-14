@@ -59,11 +59,13 @@ void IIIF::run( Session* session, const string& src )
   // Find the last slash
   const size_t lastSlashPos = src.find_last_of('/');
 
-  if ( lastSlashPos == string::npos ){
-    // No parameters, so redirect to info request
+  // If there are no slashes except the first character,
+  // redirect to the information request URI
+  if ( lastSlashPos == string::npos || lastSlashPos == 0 ){
     string id;
     string host = session->headers["BASE_URL"];
     if ( host.length() > 0 ){
+      // Assume that QUERY_STRING begins with "IIIF="
       id = host + (session->headers["QUERY_STRING"]).substr(5, string::npos);
     }
     else{
@@ -87,19 +89,22 @@ void IIIF::run( Session* session, const string& src )
   string filename, params;
   const string suffix = src.substr( lastSlashPos + 1, string::npos );
 
+  // Remove leading slash (if any)
+  const size_t srcOffset = (src[0] == '/') ? 1 : 0;
+
   // If we have an info command, file name must be everything
-  if ( suffix.substr(0, 4) == "info" ){
-    filename = src.substr(0, lastSlashPos);
+  if ( suffix.compare(0, 4, "info") == 0 ){
+    filename = src.substr(srcOffset, lastSlashPos - srcOffset);
   }
   else{
     size_t positionTmp = lastSlashPos;
     for ( int i = 0; i < 3; i++ ){
-      positionTmp = src.find_last_of("/", positionTmp - 1);
+      positionTmp = src.find_last_of('/', positionTmp - 1);
       if ( positionTmp == string::npos ){
         throw invalid_argument( "IIIF: Not enough parameters" );
       }
     }
-    filename = src.substr(0, positionTmp);
+    filename = src.substr(srcOffset, positionTmp - srcOffset);
     params = src.substr(positionTmp + 1, string::npos);
   }
 
