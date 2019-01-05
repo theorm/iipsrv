@@ -1,5 +1,12 @@
 FROM debian:stretch-slim AS build
 
+ARG VCS_REF
+
+LABEL org.label-schema.build-date=$BUILD_DATE \
+      org.label-schema.vcs-ref=$VCS_REF \
+      org.label-schema.vcs-url="https://github.com/dfukagaw28/iipsrv.git" \
+      org.label-schema.schema-version="1.0"
+
 ENV PYTHONUNBUFFERED 1
 
 ENV IIPSRV_BUILD_DEPS \
