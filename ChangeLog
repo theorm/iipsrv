@@ -1,3 +1,49 @@
+24/03/2016: Version 1.1 Released
+
+
+20/06/2019:
+	- Documentation updates for doxygen
+
+
+13/06/2019:
+	- Re-factored to display Logger output type availability at configure stage.
+	- SIGHUP signal now empties internal caches rather than terminates iipsrv.
+
+
+12/06/2019:
+	- Fix to avoid unnecessary conversion to binary when image already binary.
+	- Update to OpenJPEG code to fix problem when re-using codec structures
+	  more than once in the same request (for example when calculating histogram).
+
+
+11/06/2019:
+	- Fixes to eliminate Coverity static scan analysis warnings.
+	- New rewritten OpenJPEG module: now faster, cleaner and correctly
+	  handles ICC profiles, bilevel and 16 bit images. Now activated by
+	  default if OpenJPEG library found and Kakadu not requested.
+
+
+13/05/2019:
+	- Update to configure.ac to change AC_CHECK_FILE for Kakadu sources to
+	  AS_IF to properly enable cross builds. Patched thanks to Helmut Grohne.
+
+
+23/02/2019:
+	- Added test for resolutions that may be untiled within a tiled TIFF.
+
+
+01/04/2019:
+	- Added Logger class, which replaces the previous raw ofstream. The class
+	  includes functionality to output log to syslog on UNIX-type systems.
+	  Pass "syslog" to the LOGFILE startup environment variable to use syslog.
+	- Minor code changes for Windows MSVC compilation
+
+
+19/03/2019:
+	- Small increase in temporary buffer size in OBJ.cc colorspace() function
+	  to avoid truncation warning in GCC 8.2
+
+
 13/03/2019:
 	- Fixed bug in vertical mirroring transformation
 	- Minor change to IIIF square parsing to allow correct logging

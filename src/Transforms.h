@@ -25,6 +25,13 @@
 #include <vector>
 #include "RawTile.h"
 
+
+// Define round() function for older MSVC compilers
+#if defined _MSC_VER && _MSC_VER<1900
+inline double round(double r) { return (r > 0.0) ? floor(r + 0.5) : ceil(r - 0.5); }
+#endif
+
+
 enum interpolation { NEAREST, BILINEAR, CUBIC, LANCZOS2, LANCZOS3 };
 enum cmap_type { HOT, COLD, JET, BLUE, GREEN, RED };
 
@@ -147,14 +154,15 @@ struct Transform {
 
   /// Calculate histogram of an image
   /** @param in input image
+      @param max max image values for each channel
+      @param min min image values for each channel
       @return vector containing histogram (single histogram for all channels)
   */
   std::vector<unsigned int> histogram( RawTile& in, const std::vector<float>& max, const std::vector<float>& min );
 
 
   /// Calculate threshold for binary (bi-level) segmentation
-  /** @param in input image
-      @param histogram image histogram
+  /** @param histogram image histogram
       @return threshold
   */
   unsigned char threshold( std::vector<unsigned int>& histogram );

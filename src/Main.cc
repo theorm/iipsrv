@@ -1,7 +1,7 @@
 /*
     IIP FCGI server module - Main loop.
 
-    Copyright (C) 2000-2018 Ruven Pillay
+    Copyright (C) 2000-2019 Ruven Pillay
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,8 +26,6 @@
 
 #include <ctime>
 #include <csignal>
-#include <iostream>
-#include <fstream>
 #include <string>
 #include <utility>
 #include <map>
@@ -43,6 +41,8 @@
 #include "Task.h"
 #include "Environment.h"
 #include "Writer.h"
+#include "Logger.h"
+
 
 #ifdef HAVE_MEMCACHED
 #ifdef WIN32
@@ -92,13 +92,36 @@ using namespace std;
    can have access to them
 */
 int loglevel;
-ofstream logfile;
+Logger logfile;
 unsigned long IIPcount;
 char *tz = NULL;
 
 
 
-/* Handle a signal - print out some stats and exit
+// Create pointers to our cache structures for use in our signal handler function
+imageCacheMapType* ic = NULL;
+Cache* tc = NULL;
+
+
+void IIPReloadCache( int signal )
+{
+  if( ic ) ic->clear();
+  if( tc ) tc->clear();
+
+  if( loglevel >= 1 ){
+    // No strsignal on Windows
+#ifdef WIN32
+    int sigstr = signal;
+#else
+    char *sigstr = strsignal( signal );
+#endif
+    logfile << "Caught " << sigstr << " signal. Emptying internal caches" << endl << endl;
+  }
+}
+
+
+
+/* Handle a termination signal - print out some stats and exit
  */
 void IIPSignalHandler( int signal )
 {
@@ -112,6 +135,9 @@ void IIPSignalHandler( int signal )
     time_t current_time = time( NULL );
     char *date = ctime( &current_time );
 
+    // Remove trailing newline
+    date[strcspn(date, "\n")] = '\0';
+
     // No strsignal on Windows
 #ifdef WIN32
     int sigstr = signal;
@@ -121,7 +147,7 @@ void IIPSignalHandler( int signal )
 
     logfile << endl << "Caught " << sigstr << " signal. "
 	    << "Terminating after " << IIPcount << " accesses" << endl
-	    << date
+	    << date << endl
 	    << "<----------------------------------->" << endl << endl;
     logfile.close();
   }
@@ -159,8 +185,8 @@ int main( int argc, char *argv[] )
 
     // Check for the requested log file path
     string lf = Environment::getLogFile();
+    logfile.open( lf );
 
-    logfile.open( lf.c_str(), ios::app );
     // If we cannot open this, set the loglevel to 0
     if( !logfile ){
       loglevel = 0;
@@ -238,6 +264,7 @@ int main( int argc, char *argv[] )
   // Set our maximum image cache size
   float max_image_cache_size = Environment::getMaxImageCacheSize();
   imageCacheMapType imageCache;
+  ic = &imageCache;
 
 
   // Get our image pattern variable
@@ -465,7 +492,7 @@ int main( int argc, char *argv[] )
 
 #ifndef WIN32
   signal( SIGUSR1, IIPSignalHandler );
-  signal( SIGHUP, IIPSignalHandler );
+  signal( SIGHUP, IIPReloadCache );
 #endif
 
   signal( SIGTERM, IIPSignalHandler );
@@ -486,6 +513,7 @@ int main( int argc, char *argv[] )
 
   // Create our tile cache
   Cache tileCache( max_image_cache_size );
+  tc = &tileCache;
   Task* task = NULL;
 
 

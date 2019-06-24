@@ -33,6 +33,7 @@
 
 
 #include "IIPImage.h"
+#include "Logger.h"
 
 #include <jpx.h>
 #include <jp2.h>
@@ -46,7 +47,7 @@
 using namespace kdu_supp; // Also includes the `kdu_core' namespace
 #endif
 
-extern std::ofstream logfile;
+extern Logger logfile;
 
 
 /// Wrapper class to handle error messages from Kakadu
@@ -150,7 +151,7 @@ class KakaduImage : public IIPImage {
   };
 
   /// Assignment Operator
-  /** @param TPTImage object
+  /** @param image object
    */
   KakaduImage& operator = ( KakaduImage image ) {
     if( this != &image ){
@@ -199,7 +200,7 @@ class KakaduImage : public IIPImage {
       @param y y coordinate
       @param w width of region
       @param h height of region
-      @param b buffer to fill
+      @return RawTile image
    */
   RawTile getRegion( int ha, int va, unsigned int r, int l, int x, int y, unsigned int w, unsigned int h );
 
